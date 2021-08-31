@@ -74,7 +74,7 @@ function TimeMenu() {
                       rel="noreferrer"
                     >
                       <Button size="large" variant="contained" color="secondary" fullWidth>
-                        <Typography align="left">
+                        <Typography className="buy-text" align="left">
                           Buy on Sushiswap <SvgIcon component={ArrowUpIcon} htmlColor="#A3A3A3" />
                         </Typography>
                       </Button>
@@ -91,7 +91,7 @@ function TimeMenu() {
                         color="secondary"
                         onClick={addTokenToWallet("TIME", TIME_ADDRESS)}
                       >
-                        <Typography>TIME</Typography>
+                        <Typography className="buy-text">TIME</Typography>
                       </Button>
                       <Button
                         variant="contained"
@@ -99,7 +99,7 @@ function TimeMenu() {
                         color="secondary"
                         onClick={addTokenToWallet("MEMO", MEMO_ADDRESS)}
                       >
-                        <Typography>MEMO</Typography>
+                        <Typography className="buy-text">MEMO</Typography>
                       </Button>
                     </Box>
                   ) : null}
@@ -111,7 +111,9 @@ function TimeMenu() {
                     rel="noreferrer"
                   >
                     <Button size="large" variant="contained" color="secondary" fullWidth>
-                      <Typography align="left">Unstake LP Token</Typography>
+                      <Typography className="buy-text" align="left">
+                        Unstake LP Token
+                      </Typography>
                     </Button>
                   </Link>
                 </Paper>

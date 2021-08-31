@@ -15,3 +15,4 @@ export * from "./get-token-image";
 export * from "./get-pair-image";
 export * from "./set-all";
 export * from "./price-units";
+export * from "./token-price";

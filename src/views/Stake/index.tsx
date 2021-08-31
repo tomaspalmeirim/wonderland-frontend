@@ -289,7 +289,7 @@ function Stake() {
                         {isAppLoading ? (
                           <Skeleton width="80px" />
                         ) : (
-                          <>{new Intl.NumberFormat("en-US").format(Number(trimmedMemoBalance))} sTIME</>
+                          <>{new Intl.NumberFormat("en-US").format(Number(trimmedMemoBalance))} MEMO</>
                         )}
                       </p>
                     </div>
@@ -297,7 +297,7 @@ function Stake() {
                     <div className="data-row">
                       <p className="data-row-name">Next Reward Amount</p>
                       <p className="data-row-value">
-                        {isAppLoading ? <Skeleton width="80px" /> : <>{nextRewardValue} sTIME</>}
+                        {isAppLoading ? <Skeleton width="80px" /> : <>{nextRewardValue} MEMO</>}
                       </p>
                     </div>
 

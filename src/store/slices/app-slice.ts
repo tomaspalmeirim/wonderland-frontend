@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { getAddresses, BONDS } from "../../constants";
 import { StakingContract, MemoTokenContract, BondingCalcContract } from "../../abi";
-import { addressForAsset, contractForReserve, setAll } from "../../helpers";
+import { addressForAsset, contractForReserve, setAll, getTokenPrice } from "../../helpers";
 import { createSlice, createSelector, createAsyncThunk } from "@reduxjs/toolkit";
 import { JsonRpcProvider } from "@ethersproject/providers";
 
@@ -34,8 +34,10 @@ export const loadAppDetails = createAsyncThunk(
   "app/loadAppDetails",
   //@ts-ignore
   async ({ networkID, provider }: ILoadAppDetails) => {
+    const price = await getTokenPrice("TIME");
+
     const stakingTVL = 0;
-    const marketPrice = 0;
+    const marketPrice = price;
 
     if (!provider) {
       console.error("failed to connect to provider, please connect your wallet");
