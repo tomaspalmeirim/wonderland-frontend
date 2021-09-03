@@ -10,11 +10,11 @@ export const makeBondsArray = (mimBondDiscount?: string | number, mimTimeBondDis
       value: "mim",
       discount: Number(mimBondDiscount),
     },
-    // {
-    //   name: "MIM-TIME LP",
-    //   value: "mim_time_lp",
-    //   discount: Number(mimTimeBondDiscount),
-    // },
+    {
+      name: "TIME-MIM LP",
+      value: "mim_time_lp",
+      discount: Number(mimTimeBondDiscount),
+    },
   ];
 };
 

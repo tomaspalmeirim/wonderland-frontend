@@ -38,31 +38,31 @@ function Stake() {
 
   const isAppLoading = useSelector<IReduxState, boolean>(state => state.app.loading);
   const currentIndex = useSelector<IReduxState, string>(state => {
-    return state.app.currentIndex || "";
+    return state.app.currentIndex;
   });
   const fiveDayRate = useSelector<IReduxState, number>(state => {
-    return state.app.fiveDayRate || 0;
+    return state.app.fiveDayRate;
   });
   const timeBalance = useSelector<IReduxState, string>(state => {
-    return (state.account.balances && state.account.balances.time) || "0";
+    return state.account.balances && state.account.balances.time;
   });
   const memoBalance = useSelector<IReduxState, string>(state => {
-    return (state.account.balances && state.account.balances.memo) || "0";
+    return state.account.balances && state.account.balances.memo;
   });
   const stakeAllowance = useSelector<IReduxState, number>(state => {
-    return (state.account.staking && state.account.staking.timeStake) || 0;
+    return state.account.staking && state.account.staking.timeStake;
   });
   const unstakeAllowance = useSelector<IReduxState, number>(state => {
-    return (state.account.staking && state.account.staking.memoUnstake) || 0;
+    return state.account.staking && state.account.staking.memoUnstake;
   });
   const stakingRebase = useSelector<IReduxState, number>(state => {
-    return state.app.stakingRebase || 0;
+    return state.app.stakingRebase;
   });
   const stakingAPY = useSelector<IReduxState, number>(state => {
-    return state.app.stakingAPY || 0;
+    return state.app.stakingAPY;
   });
   const stakingTVL = useSelector<IReduxState, number>(state => {
-    return state.app.stakingTVL || 0;
+    return state.app.stakingTVL;
   });
 
   const pendingTransactions = useSelector<IReduxState, IPendingTxn[]>(state => {
@@ -117,7 +117,9 @@ function Stake() {
           <Grid container direction="column" spacing={2}>
             <Grid item>
               <div className="card-header">
-                <p className="single-stake-title">TIME Staking (🎩, 🎩)</p>
+                <p className="single-stake-title">
+                  TIME Staking ({String.fromCodePoint(0x1f3a9)}, {String.fromCodePoint(0x1f3a9)})
+                </p>
                 <RebaseTimer />
               </div>
             </Grid>
@@ -125,7 +127,7 @@ function Stake() {
             <Grid item>
               <div className="stake-top-metrics">
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={4} md={4} lg={4}>
+                  <Grid item xs={12} sm={4} md={4} lg={6}>
                     <div className="stake-apy">
                       <p className="single-stake-subtitle">APY</p>
                       <p className="single-stake-subtitle-value">
@@ -138,11 +140,11 @@ function Stake() {
                     </div>
                   </Grid>
 
-                  <Grid item xs={6} sm={4} md={4} lg={4}>
+                  {/* <Grid item xs={6} sm={4} md={4} lg={4}>
                     <div className="stake-tvl">
                       <p className="single-stake-subtitle">TVL</p>
                       <p className="single-stake-subtitle-value">
-                        {/* {stakingTVL ? (
+                        {stakingTVL ? (
                           new Intl.NumberFormat("en-US", {
                             style: "currency",
                             currency: "USD",
@@ -151,12 +153,12 @@ function Stake() {
                           }).format(stakingTVL)
                         ) : (
                           <Skeleton width="150px" />
-                        )} */}
+                        )}
                       </p>
                     </div>
-                  </Grid>
+                  </Grid> */}
 
-                  <Grid item xs={6} sm={4} md={4} lg={4}>
+                  <Grid item xs={12} sm={4} md={4} lg={4}>
                     <div className="stake-index">
                       <p className="single-stake-subtitle">Current Index</p>
                       <p className="single-stake-subtitle-value">

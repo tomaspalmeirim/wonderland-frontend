@@ -1,4 +1,4 @@
-import React, { useState, ReactElement, useContext, useEffect, useMemo, useCallback } from "react";
+import React, { useState, ReactElement, useContext, useMemo, useCallback } from "react";
 import Web3Modal from "web3modal";
 import { StaticJsonRpcProvider, JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 import WalletConnectProvider from "@walletconnect/web3-provider";
@@ -7,7 +7,7 @@ import { DEFAULD_NETWORK } from "../../constants";
 import { Networks } from "../../constants";
 
 type onChainProvider = {
-  connect: () => void;
+  connect: () => Promise<Web3Provider>;
   disconnect: () => void;
   provider: JsonRpcProvider;
   address: string;
@@ -15,6 +15,7 @@ type onChainProvider = {
   web3Modal: Web3Modal;
   chainID: number;
   web3?: any;
+  hasCachedProvider: () => boolean;
 };
 
 export type Web3ContextData = {
@@ -46,7 +47,7 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({ chil
   const [chainID, setChainID] = useState(DEFAULD_NETWORK);
   const [address, setAddress] = useState("");
 
-  const [uri, setUri] = useState(chainID === Networks.AWAX ? getMainnetURI() : getTestnetURI());
+  const [uri, setUri] = useState(chainID === Networks.AVAX ? getMainnetURI() : getTestnetURI());
   const [provider, setProvider] = useState<JsonRpcProvider>(new StaticJsonRpcProvider(uri));
 
   const [web3Modal] = useState<Web3Modal>(
@@ -57,7 +58,7 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({ chil
           package: WalletConnectProvider,
           options: {
             rpc: {
-              [Networks.AWAX]: getMainnetURI(),
+              [Networks.AVAX]: getMainnetURI(),
               [Networks.RINKEBY]: getTestnetURI(),
             },
           },
@@ -66,37 +67,43 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({ chil
     }),
   );
 
-  const _hasCachedProvider = (): Boolean => {
+  const hasCachedProvider = (): boolean => {
     if (!web3Modal) return false;
     if (!web3Modal.cachedProvider) return false;
     return true;
   };
 
-  const _initListeners = useCallback(() => {
-    if (!provider || provider instanceof Web3Provider !== true) return;
-    provider.on("accountsChanged", () => {
-      if (_hasCachedProvider()) return;
-      setTimeout(() => window.location.reload(), 1);
-    });
+  const _initListeners = useCallback(
+    (rawProvider: JsonRpcProvider) => {
+      if (!rawProvider.on) {
+        return;
+      }
 
-    provider.on("chainChanged", (chain: number) => {
-      if (_hasCachedProvider()) return;
-      _checkNetwork(chain);
-      setTimeout(() => window.location.reload(), 1);
-    });
+      rawProvider.on("accountsChanged", () => setTimeout(() => window.location.reload(), 1));
 
-    provider.on("network", (_newNetwork, oldNetwork) => {
-      if (!oldNetwork) return;
-      window.location.reload();
-    });
-  }, [provider]);
+      rawProvider.on("chainChanged", (chain: number) => {
+        _checkNetwork(chain);
+        setTimeout(() => window.location.reload(), 1);
+      });
+
+      rawProvider.on("network", (_newNetwork, oldNetwork) => {
+        if (!oldNetwork) return;
+        window.location.reload();
+      });
+    },
+    [provider],
+  );
 
   const _checkNetwork = (otherChainID: number): Boolean => {
+    if (Number(otherChainID) !== Networks.AVAX) {
+      alert("Please connect your wallet to Avalanche network to use Wonderland!");
+    }
+
     if (chainID !== otherChainID) {
       console.warn("You are switching networks: ", otherChainID);
-      if (otherChainID === Networks.AWAX || otherChainID === Networks.RINKEBY) {
+      if (otherChainID === Networks.AVAX || otherChainID === Networks.RINKEBY) {
         setChainID(otherChainID);
-        otherChainID === Networks.AWAX ? setUri(getMainnetURI()) : setUri(getTestnetURI());
+        otherChainID === Networks.AVAX ? setUri(getMainnetURI()) : setUri(getTestnetURI());
         return true;
       }
       return false;
@@ -106,6 +113,9 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({ chil
 
   const connect = useCallback(async () => {
     const rawProvider = await web3Modal.connect();
+
+    _initListeners(rawProvider);
+
     const connectedProvider = new Web3Provider(rawProvider, "any");
 
     const chainId = await connectedProvider.getNetwork().then(network => network.chainId);
@@ -113,7 +123,7 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({ chil
 
     const validNetwork = _checkNetwork(chainId);
     if (!validNetwork) {
-      console.error("Wrong network, please switch to mainnet");
+      console.error("Wrong network, please switch to avalanche");
       return;
     }
     setAddress(connectedAddress);
@@ -135,19 +145,9 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({ chil
   }, [provider, web3Modal, connected]);
 
   const onChainProvider = useMemo(
-    () => ({ connect, disconnect, provider, connected, address, chainID, web3Modal }),
-    [connect, disconnect, provider, connected, address, chainID, web3Modal],
+    () => ({ connect, disconnect, hasCachedProvider, provider, connected, address, chainID, web3Modal }),
+    [connect, disconnect, hasCachedProvider, provider, connected, address, chainID, web3Modal],
   );
-
-  useEffect(() => {
-    if (_hasCachedProvider()) {
-      connect();
-    }
-  }, []);
-
-  useEffect(() => {
-    _initListeners();
-  }, [connected]);
-
+  //@ts-ignore
   return <Web3Context.Provider value={{ onChainProvider }}>{children}</Web3Context.Provider>;
 };

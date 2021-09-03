@@ -12,9 +12,9 @@ export const contractForReserve = (
     return new ethers.Contract(addresses.RESERVES.MIM, MimReserveContract, provider);
   }
 
-  // if (bond === BONDS.mim_time) {
-  //   return new ethers.Contract(addresses.RESERVES.MIM_TIME, MimTimeReserveContract, provider);
-  // }
+  if (bond === BONDS.mim_time) {
+    return new ethers.Contract(addresses.RESERVES.MIM_TIME, MimTimeReserveContract, provider);
+  }
 
   throw Error(`Contract for reserve doesn't support: ${bond}`);
 };

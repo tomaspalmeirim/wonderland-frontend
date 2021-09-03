@@ -17,13 +17,13 @@ export function BondDataCard({ bond }: IBondProps) {
 
   const isBondLoading = useSelector<IReduxState, boolean>(state => !state.bonding[bond]?.bondPrice ?? true);
   const bondPrice = useSelector<IReduxState, number | undefined>(state => {
-    return (state.bonding[bond] && state.bonding[bond].bondPrice) || 0;
+    return state.bonding[bond] && state.bonding[bond].bondPrice;
   });
   const bondDiscount = useSelector<IReduxState, number>(state => {
-    return (state.bonding[bond] && state.bonding[bond].bondDiscount) || 0;
+    return state.bonding[bond] && state.bonding[bond].bondDiscount;
   });
   const bondPurchased = useSelector<IReduxState, number>(state => {
-    return (state.bonding[bond] && state.bonding[bond].purchased) || 0;
+    return state.bonding[bond] && state.bonding[bond].purchased;
   });
 
   return (
@@ -90,13 +90,13 @@ export function BondTableData({ bond }: IBondProps) {
   const isBondLoading = useSelector<IReduxState, boolean>(state => !state.bonding[bond]?.bondPrice ?? true);
 
   const bondPrice = useSelector<IReduxState, number>(state => {
-    return (state.bonding[bond] && state.bonding[bond].bondPrice) || 0;
+    return state.bonding[bond] && state.bonding[bond].bondPrice;
   });
   const bondDiscount = useSelector<IReduxState, number>(state => {
-    return (state.bonding[bond] && state.bonding[bond].bondDiscount) || 0;
+    return state.bonding[bond] && state.bonding[bond].bondDiscount;
   });
   const bondPurchased = useSelector<IReduxState, number>(state => {
-    return (state.bonding[bond] && state.bonding[bond].purchased) || 0;
+    return state.bonding[bond] && state.bonding[bond].purchased;
   });
 
   return (

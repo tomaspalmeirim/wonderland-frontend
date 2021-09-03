@@ -1,4 +1,4 @@
-import { ethers, constants } from "ethers";
+import { ethers, constants, BigNumber } from "ethers";
 import {
   isBondLP,
   getMarketPrice,
@@ -6,27 +6,29 @@ import {
   contractForReserve,
   addressForAsset,
   bondName,
+  getTokenPrice,
 } from "../../helpers";
-import { getBalances } from "./account-slice";
+import { calculateUserBondDetails, getBalances } from "./account-slice";
 import { getAddresses, BONDS } from "../../constants";
 import { BondingCalcContract } from "../../abi";
 import { fetchPendingTxns, clearPendingTxn } from "./pending-txns-slice";
 import { createSlice, createSelector, createAsyncThunk } from "@reduxjs/toolkit";
 import { JsonRpcProvider } from "@ethersproject/providers";
+import { fetchAccountSuccess } from "./account-slice";
 
 interface IState {
   [key: string]: any;
 }
 
 const initialState: IState = {
-  status: "idle",
-  loading: false,
+  loading: true,
 };
 
 interface IChangeApproval {
   bond: string;
   provider: JsonRpcProvider;
   networkID: number;
+  address: string;
 }
 
 export interface IBond {
@@ -35,7 +37,7 @@ export interface IBond {
 
 export const changeApproval = createAsyncThunk(
   "bonding/changeApproval",
-  async ({ bond, provider, networkID }: IChangeApproval, { dispatch }) => {
+  async ({ bond, provider, networkID, address }: IChangeApproval, { dispatch }) => {
     if (!provider) {
       alert("Please connect your wallet!");
       return;
@@ -50,9 +52,9 @@ export const changeApproval = createAsyncThunk(
       if (bond === BONDS.mim) {
         approveTx = await reserveContract.approve(addresses.BONDS.MIM, constants.MaxUint256);
       }
-      // if (bond === BONDS.mim_time) {
-      //   approveTx = await reserveContract.approve(addresses.BONDS.MIM_TIME, constants.MaxUint256);
-      // }
+      if (bond === BONDS.mim_time) {
+        approveTx = await reserveContract.approve(addresses.BONDS.MIM_TIME, constants.MaxUint256);
+      }
       dispatch(
         fetchPendingTxns({ txnHash: approveTx.hash, text: "Approving " + bondName(bond), type: "approve_" + bond }),
       );
@@ -64,6 +66,30 @@ export const changeApproval = createAsyncThunk(
         dispatch(clearPendingTxn(approveTx.hash));
       }
     }
+
+    let allowance,
+      balance = "0";
+
+    if (bond === BONDS.mim) {
+      allowance = await reserveContract.allowance(address, addresses.BONDS.MIM);
+      balance = await reserveContract.balanceOf(address);
+      balance = ethers.utils.formatEther(balance);
+    }
+
+    if (bond === BONDS.mim_time) {
+      allowance = await reserveContract.allowance(address, addresses.BONDS.MIM_TIME);
+      balance = await reserveContract.balanceOf(address);
+      balance = ethers.utils.formatUnits(balance, "ether");
+    }
+
+    return dispatch(
+      fetchAccountSuccess({
+        [bond]: {
+          allowance: Number(allowance),
+          balance: Number(balance),
+        },
+      }),
+    );
   },
 );
 
@@ -99,31 +125,31 @@ export const calcBondDetails = createAsyncThunk(
     const debtRatio = (await bondContract.standardizedDebtRatio()) / Math.pow(10, 9);
 
     let marketPrice = await getMarketPrice(networkID, provider);
+    const mimPrice = await getTokenPrice("MIM");
+    marketPrice = (marketPrice / Math.pow(10, 9)) * mimPrice;
 
     try {
       bondPrice = await bondContract.bondPriceInUSD();
-      bondDiscount = (marketPrice * Math.pow(10, 9) - bondPrice) / bondPrice;
+      bondDiscount = (marketPrice * Math.pow(10, 18) - bondPrice) / bondPrice;
     } catch (e) {
       console.log("error getting bondPriceInUSD", e);
     }
 
-    // if (bond === BONDS.mim_time) {
-    //   valuation = await bondCalcContract.valuation(addresses.RESERVES.MIM_TIME, amountInWei);
-    //   bondQuote = await bondContract.payoutFor(valuation);
-    //   bondQuote = bondQuote / Math.pow(10, 9);
-    // } else {
-    //   bondQuote = await bondContract.payoutFor(amountInWei);
-    //   bondQuote = bondQuote / Math.pow(10, 18);
-    // }
-    bondQuote = await bondContract.payoutFor(amountInWei);
-    bondQuote = bondQuote / Math.pow(10, 18);
+    if (bond === BONDS.mim_time) {
+      valuation = await bondCalcContract.valuation(addresses.RESERVES.MIM_TIME, amountInWei);
+      bondQuote = await bondContract.payoutFor(valuation);
+      bondQuote = bondQuote / Math.pow(10, 9);
+    } else {
+      bondQuote = await bondContract.payoutFor(amountInWei);
+      bondQuote = bondQuote / Math.pow(10, 18);
+    }
 
     // Display error if user tries to exceed maximum.
     if (!!value && bondQuote > maxBondPrice / Math.pow(10, 9)) {
       alert(
         "You're trying to bond more than the maximum payout available! The maximum bond payout is " +
           (maxBondPrice / Math.pow(10, 9)).toFixed(2).toString() +
-          " OHM.",
+          " TIME.",
       );
     }
 
@@ -148,56 +174,7 @@ export const calcBondDetails = createAsyncThunk(
       vestingTerm: Number(terms.vestingTerm),
       maxBondPrice: maxBondPrice / Math.pow(10, 9),
       bondPrice: bondPrice / Math.pow(10, 18),
-      marketPrice: marketPrice / Math.pow(10, 9),
-    };
-  },
-);
-
-interface ICalculateUserBondDetails {
-  address: string;
-  bond: string;
-  networkID: number;
-  provider: JsonRpcProvider;
-}
-
-export const calculateUserBondDetails = createAsyncThunk(
-  "bonding/calculateUserBondDetails",
-  async ({ address, bond, networkID, provider }: ICalculateUserBondDetails) => {
-    if (!address) return;
-
-    const addresses = getAddresses(networkID);
-    const bondContract = contractForBond(bond, networkID, provider);
-    const reserveContract = contractForReserve(bond, networkID, provider);
-
-    let interestDue, pendingPayout, bondMaturationBlock;
-
-    const bondDetails = await bondContract.bondInfo(address);
-    interestDue = bondDetails.payout / Math.pow(10, 9);
-    bondMaturationBlock = +bondDetails.vesting + +bondDetails.lastTime;
-    pendingPayout = await bondContract.pendingPayoutFor(address);
-
-    let allowance,
-      balance = "0";
-
-    if (bond === BONDS.mim) {
-      allowance = await reserveContract.allowance(address, addresses.BONDS.MIM);
-      balance = await reserveContract.balanceOf(address);
-      balance = ethers.utils.formatEther(balance);
-    }
-
-    // if (bond === BONDS.mim_time) {
-    //   allowance = await reserveContract.allowance(address, addresses.BONDS.MIM_TIME);
-    //   balance = await reserveContract.balanceOf(address);
-    //   balance = ethers.utils.formatUnits(balance, "ether");
-    // }
-
-    return {
-      bond,
-      allowance: Number(allowance),
-      balance: Number(balance),
-      interestDue,
-      bondMaturationBlock,
-      pendingPayout: ethers.utils.formatUnits(pendingPayout, "gwei"),
+      marketPrice,
     };
   },
 );
@@ -299,20 +276,6 @@ const bondingSlice = createSlice({
         state.loading = false;
       })
       .addCase(calcBondDetails.rejected, (state, { error }) => {
-        state.loading = false;
-        console.log(error);
-      })
-      .addCase(calculateUserBondDetails.pending, state => {
-        state.loading = true;
-      })
-      .addCase(calculateUserBondDetails.fulfilled, (state, action) => {
-        //@ts-ignore
-        const bond = action.payload.bond;
-        const newState = { ...state[bond], ...action.payload };
-        state[bond] = newState;
-        state.loading = false;
-      })
-      .addCase(calculateUserBondDetails.rejected, (state, { error }) => {
         state.loading = false;
         console.log(error);
       });

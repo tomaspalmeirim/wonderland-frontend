@@ -35,17 +35,19 @@ function NavContent() {
       <Box className="dapp-sidebar" display="flex" justifyContent="space-between" flexDirection="column">
         <div className="dapp-menu-top">
           <Box className="branding-header">
-            <SvgIcon
-              color="primary"
-              component={WonderlandIcon}
-              viewBox="0 0 130 60"
-              //@ts-ignore
-              style={{ minWdth: "130px", minHeight: "56px", width: "130px" }}
-            />
+            <Link href="https://wonderland.money" target="_blank">
+              <SvgIcon
+                color="primary"
+                component={WonderlandIcon}
+                viewBox="0 0 130 60"
+                //@ts-ignore
+                style={{ minWdth: "130px", minHeight: "56px", width: "130px" }}
+              />
+            </Link>
 
             {address && (
               <div className="wallet-link">
-                <Link href={`https://etherscan.io/address/${address}`} target="_blank">
+                <Link href={`https://avascan.info/blockchain/c/address/${address}`} target="_blank">
                   <p>{shorten(address)}</p>
                 </Link>
               </div>
@@ -104,7 +106,7 @@ function NavContent() {
             </div>
           </div>
         </div>
-        <Box className="dapp-menu-bottom" display="flex" justifyContent="space-between" flexDirection="column">
+        <Box className="dapp-menu-bottom" display="flex" justifyContent="flex-end" flexDirection="column">
           <div className="dapp-menu-external-links">
             {externalUrls.map((link, i) => {
               return (

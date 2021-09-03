@@ -52,7 +52,7 @@ export const changeApproval = createAsyncThunk(
     }
 
     const stakeAllowance = await timeContract.allowance(address, addresses.STAKING_HELPER_ADDRESS);
-    const unstakeAllowance = await memoContract.allowance(address, addresses.STAKING_ADDRESS);
+    const unstakeAllowance = await memoContract.allowance(address, addresses.STAKING_ADDRESS); //TODO
 
     return dispatch(
       fetchAccountSuccess({
@@ -89,7 +89,7 @@ export const changeStake = createAsyncThunk(
 
     try {
       if (action === "stake") {
-        stakeTx = await stakingHelper.stake(ethers.utils.parseUnits(value, "gwei"));
+        stakeTx = await stakingHelper.stake(ethers.utils.parseUnits(value, "gwei"), address);
       } else {
         stakeTx = await staking.unstake(ethers.utils.parseUnits(value, "gwei"), true);
       }

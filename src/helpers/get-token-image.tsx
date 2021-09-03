@@ -13,7 +13,25 @@ function getTimeTokenImage() {
 export function getTokenImage(name: string): JSX.Element {
   if (name === "mim") return getMimTokenImage();
   if (name === "time") return getTimeTokenImage();
-  if (name === "memo") return getTimeTokenImage();
 
   throw Error(`Token image doesn't support: ${name}`);
+}
+
+function toUrl(base: string): string {
+  const url = window.location.origin;
+  return url + base;
+}
+
+export function getTokenUrl(name: string) {
+  if (name === "time") {
+    const path = require("../assets/tokens/TIME.svg").default;
+    return toUrl(path);
+  }
+
+  if (name === "memo") {
+    const path = require("../assets/tokens/MEMO.png").default;
+    return toUrl(path);
+  }
+
+  throw Error(`Token url doesn't support: ${name}`);
 }

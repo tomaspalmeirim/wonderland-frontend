@@ -39,6 +39,7 @@ function BondHeader({
     if (open) handleClose;
     else history.push("/bonds");
   });
+
   return (
     <div className="bond-header">
       <Link component={NavLink} to="/bonds" className="cancel-bond">

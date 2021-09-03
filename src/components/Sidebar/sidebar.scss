@@ -88,14 +88,14 @@
 .dapp-menu-external-links {
   display: flex;
   flex-flow: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  margin-left: 24px;
   a {
     display: flex;
     width: 100%;
     align-items: center;
-    margin-bottom: 40px;
+    justify-content: center;
+    margin-bottom: 20px;
 
     font-family: Montserrat SemiBold;
     font-weight: 600;
@@ -144,7 +144,7 @@
 .social-row {
   display: flex;
   flex-flow: row;
-  justify-content: space-evenly;
+  justify-content: center;
   padding: 1.3rem;
   a {
     &:hover {
@@ -153,6 +153,10 @@
     img {
       height: 20px;
       width: 20px;
+    }
+    &:nth-child(2) {
+      margin-left: 40px;
+      margin-right: 40px;
     }
   }
 }

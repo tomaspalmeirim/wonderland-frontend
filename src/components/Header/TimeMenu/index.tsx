@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { getAddresses, TOKEN_DECIMALS, DEFAULD_NETWORK } from "../../../constants";
-import { getTokenImage } from "../../../helpers";
 import { useSelector } from "react-redux";
 import { Link, SvgIcon, Popper, Button, Paper, Typography, Divider, Box, Fade } from "@material-ui/core";
 import { ReactComponent as ArrowUpIcon } from "../../../assets/icons/arrow-up.svg";
 import "./ohmmenu.scss";
 import { IReduxState } from "../../../store/slices/state.interface";
-
-const memoImg = getTokenImage("memo");
-const timeImg = getTokenImage("time");
+import { getTokenUrl } from "../../../helpers";
 
 const addTokenToWallet = (tokenSymbol: string, tokenAddress: string) => async () => {
+  const tokenImage = getTokenUrl(tokenSymbol.toLowerCase());
+
   if (window.ethereum) {
     try {
       await window.ethereum.request({
@@ -21,7 +20,7 @@ const addTokenToWallet = (tokenSymbol: string, tokenAddress: string) => async ()
             address: tokenAddress,
             symbol: tokenSymbol,
             decimals: TOKEN_DECIMALS,
-            image: tokenSymbol === "TIME" ? timeImg : memoImg,
+            image: tokenImage,
           },
         },
       });
@@ -62,20 +61,20 @@ function TimeMenu() {
           <p>TIME</p>
         </div>
 
-        <Popper id={id} open={open} anchorEl={anchorEl} placement="bottom-start" transition>
+        <Popper id={id} open={open} anchorEl={anchorEl} transition>
           {({ TransitionProps }) => {
             return (
               <Fade {...TransitionProps} timeout={200}>
                 <Paper className="ohm-menu" elevation={1}>
                   <Box component="div" className="buy-tokens">
                     <Link
-                      href={`https://app.sushi.com/swap?inputCurrency=${addresses.RESERVES.MIM}&outputCurrency=${TIME_ADDRESS}`}
+                      href={`https://www.traderjoexyz.com/#/trade?inputCurrency=&outputCurrency=${TIME_ADDRESS}`}
                       target="_blank"
                       rel="noreferrer"
                     >
                       <Button size="large" variant="contained" color="secondary" fullWidth>
                         <Typography className="buy-text" align="left">
-                          Buy on Sushiswap <SvgIcon component={ArrowUpIcon} htmlColor="#A3A3A3" />
+                          Buy on Trader Joe <SvgIcon component={ArrowUpIcon} htmlColor="#A3A3A3" />
                         </Typography>
                       </Button>
                     </Link>
@@ -103,19 +102,6 @@ function TimeMenu() {
                       </Button>
                     </Box>
                   ) : null}
-
-                  <Divider color="secondary" />
-                  <Link
-                    href="https://wonderland.gitbook.io/wonderland/using-avalanche-explorer/unstake-notime"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <Button size="large" variant="contained" color="secondary" fullWidth>
-                      <Typography className="buy-text" align="left">
-                        Unstake LP Token
-                      </Typography>
-                    </Button>
-                  </Link>
                 </Paper>
               </Fade>
             );

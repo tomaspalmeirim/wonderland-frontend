@@ -1,4 +1,4 @@
-@import "./assets/styles/fonts.scss";
+@import "../assets/styles/fonts.scss";
 
 * {
   outline: none;
@@ -90,7 +90,7 @@ a:hover svg {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url('./assets/icons/background.png');
+  background-image: url('../assets/icons/background.png');
   background-size: cover;
   z-index: -1;
 }

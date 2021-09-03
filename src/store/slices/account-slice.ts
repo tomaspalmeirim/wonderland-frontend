@@ -1,23 +1,32 @@
 import { ethers } from "ethers";
-import { getAddresses } from "../../constants";
+import { BONDS, getAddresses } from "../../constants";
 import { MimTokenContract, TimeTokenContract, MemoTokenContract } from "../../abi/";
-import { setAll } from "../../helpers";
+import { contractForBond, contractForReserve, setAll } from "../../helpers";
 
 import { createSlice, createSelector, createAsyncThunk } from "@reduxjs/toolkit";
 import { JsonRpcProvider } from "@ethersproject/providers";
 
 interface IState {
-  status: string;
+  [key: string]: any;
 }
 
 const initialState: IState = {
-  status: "idle",
+  loading: true,
 };
 
 interface IAccountProps {
   address: string;
   networkID: number;
   provider: JsonRpcProvider;
+}
+
+interface IUserBindDetails {
+  bond: string;
+  allowance: number;
+  balance: number;
+  interestDue: number;
+  bondMaturationBlock: number;
+  pendingPayout: string;
 }
 
 export interface IAccount {
@@ -30,6 +39,7 @@ export interface IAccount {
     timeStake: number;
     memoUnstake: number;
   };
+  mim: IUserBindDetails;
 }
 
 export const getBalances = createAsyncThunk(
@@ -88,6 +98,55 @@ export const loadAccountDetails = createAsyncThunk(
   },
 );
 
+interface ICalculateUserBondDetails {
+  address: string;
+  bond: string;
+  networkID: number;
+  provider: JsonRpcProvider;
+}
+
+export const calculateUserBondDetails = createAsyncThunk(
+  "bonding/calculateUserBondDetails",
+  async ({ address, bond, networkID, provider }: ICalculateUserBondDetails) => {
+    if (!address) return;
+
+    const addresses = getAddresses(networkID);
+    const bondContract = contractForBond(bond, networkID, provider);
+    const reserveContract = contractForReserve(bond, networkID, provider);
+
+    let interestDue, pendingPayout, bondMaturationBlock;
+
+    const bondDetails = await bondContract.bondInfo(address);
+    interestDue = bondDetails.payout / Math.pow(10, 9);
+    bondMaturationBlock = +bondDetails.vesting + +bondDetails.lastTime;
+    pendingPayout = await bondContract.pendingPayoutFor(address);
+
+    let allowance,
+      balance = "0";
+
+    if (bond === BONDS.mim) {
+      allowance = await reserveContract.allowance(address, addresses.BONDS.MIM);
+      balance = await reserveContract.balanceOf(address);
+      balance = ethers.utils.formatEther(balance);
+    }
+
+    if (bond === BONDS.mim_time) {
+      allowance = await reserveContract.allowance(address, addresses.BONDS.MIM_TIME);
+      balance = await reserveContract.balanceOf(address);
+      balance = ethers.utils.formatUnits(balance, "ether");
+    }
+
+    return {
+      bond,
+      allowance: Number(allowance),
+      balance: Number(balance),
+      interestDue,
+      bondMaturationBlock,
+      pendingPayout: ethers.utils.formatUnits(pendingPayout, "gwei"),
+    };
+  },
+);
+
 const accountSlice = createSlice({
   name: "account",
   initialState,
@@ -118,6 +177,19 @@ const accountSlice = createSlice({
       })
       .addCase(getBalances.rejected, (state, { error }) => {
         state.status = "idle";
+        console.log(error);
+      })
+      .addCase(calculateUserBondDetails.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(calculateUserBondDetails.fulfilled, (state, action) => {
+        //@ts-ignore
+        const bond = action.payload.bond;
+        state[bond] = action.payload;
+        state.loading = false;
+      })
+      .addCase(calculateUserBondDetails.rejected, (state, { error }) => {
+        state.loading = false;
         console.log(error);
       });
   },

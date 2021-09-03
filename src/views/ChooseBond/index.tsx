@@ -30,7 +30,7 @@ function ChooseBond() {
   });
 
   const treasuryBalance = useSelector<IReduxState, number>(state => {
-    return state.app.treasuryBalance || 0;
+    return state.app.treasuryBalance;
   });
 
   return (
@@ -38,7 +38,9 @@ function ChooseBond() {
       <Zoom in={true}>
         <Paper className="ohm-card">
           <Box className="card-header">
-            <p className="bond-title">Bond (🫖, 🫖)</p>
+            <p className="bond-title">
+              Bond ({String.fromCodePoint(0x1fad6)}, {String.fromCodePoint(0x1fad6)})
+            </p>
           </Box>
 
           <Grid container item xs={12} style={{ margin: "10px 0px 20px" }} className="bond-hero">

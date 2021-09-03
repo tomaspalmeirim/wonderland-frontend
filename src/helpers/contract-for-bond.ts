@@ -13,9 +13,9 @@ export const contractForBond = (
     return new ethers.Contract(addresses.BONDS.MIM, MimBondContract, provider);
   }
 
-  // if (bond === BONDS.mim_time) {
-  //   return new ethers.Contract(addresses.BONDS.MIM_TIME, MimTimeBondContract, provider);
-  // }
+  if (bond === BONDS.mim_time) {
+    return new ethers.Contract(addresses.BONDS.MIM_TIME, MimTimeBondContract, provider);
+  }
 
   throw Error(`Contract for bond doesn't support: ${bond}`);
 };

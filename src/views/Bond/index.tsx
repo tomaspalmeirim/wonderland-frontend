@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { trim } from "../../helpers";
-import { calcBondDetails, calculateUserBondDetails } from "../../store/slices/bond-slice";
 import { Grid, Backdrop, Paper, Box, Tab, Tabs, Fade } from "@material-ui/core";
 import TabPanel from "../../components/TabPanel";
 import BondHeader from "./BondHeader";
@@ -24,8 +23,7 @@ interface IBondProps {
 }
 
 function Bond({ bond }: IBondProps) {
-  const dispatch = useDispatch();
-  const { provider, address, chainID } = useWeb3Context();
+  const { provider, address } = useWeb3Context();
 
   const [slippage, setSlippage] = useState(0.5);
   const [recipientAddress, setRecipientAddress] = useState(address);
@@ -35,7 +33,7 @@ function Bond({ bond }: IBondProps) {
 
   const isBondLoading = useSelector<IReduxState, boolean>(state => state.bonding.loading ?? true);
   const marketPrice = useSelector<IReduxState, number>(state => {
-    return (state.bonding[bond] && state.bonding[bond].marketPrice) || 0;
+    return state.bonding[bond] && state.bonding[bond].marketPrice;
   });
   const bondPrice = useSelector<IReduxState, number>(state => {
     return state.bonding[bond] && state.bonding[bond].bondPrice;
@@ -49,16 +47,7 @@ function Bond({ bond }: IBondProps) {
     return setSlippage(e.target.value);
   };
 
-  async function loadBondDetails() {
-    if (provider) await dispatch(calcBondDetails({ bond, value: quantity, provider, networkID: chainID }));
-
-    if (provider && address) {
-      await dispatch(calculateUserBondDetails({ address, bond, provider, networkID: chainID }));
-    }
-  }
-
   useEffect(() => {
-    loadBondDetails();
     if (address) setRecipientAddress(address);
   }, [provider, quantity, address]);
 
@@ -88,7 +77,7 @@ function Bond({ bond }: IBondProps) {
                   <p className="bond-price-data-value">
                     {isBondLoading ? (
                       <Skeleton />
-                    ) : bond.indexOf("eth") >= 0 ? (
+                    ) : bond.indexOf("lp") >= 0 ? (
                       `$${trim(bondPrice, 2)}`
                     ) : (
                       `${trim(bondPrice, 2)} ${bondToken}`
@@ -96,16 +85,8 @@ function Bond({ bond }: IBondProps) {
                   </p>
                 </div>
                 <div className="bond-price-data">
-                  <p className="bond-price-data-title">Market Price</p>
-                  <p className="bond-price-data-value">
-                    {isBondLoading ? (
-                      <Skeleton />
-                    ) : bond.indexOf("eth") >= 0 ? (
-                      `$${trim(marketPrice, 2)}`
-                    ) : (
-                      `${trim(marketPrice, 2)} ${bondToken}`
-                    )}
-                  </p>
+                  <p className="bond-price-data-title">TIME Price</p>
+                  <p className="bond-price-data-value"> {isBondLoading ? <Skeleton /> : `$${trim(marketPrice, 2)}`} </p>
                 </div>
               </Box>
 

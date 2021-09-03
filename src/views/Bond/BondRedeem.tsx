@@ -15,25 +15,28 @@ function BondRedeem({ bond }: IBondRedeem) {
   const dispatch = useDispatch();
   const { provider, address, chainID } = useWeb3Context();
 
-  const currentBlock = useSelector<IReduxState, number>(state => {
-    return state.app.currentBlock || 0;
+  const currentBlockTime = useSelector<IReduxState, number>(state => {
+    return state.app.currentBlockTime;
   });
 
   const isBondLoading = useSelector<IReduxState, boolean>(state => state.bonding.loading ?? true);
   const bondMaturationBlock = useSelector<IReduxState, number>(state => {
-    return (state.bonding[bond] && state.bonding[bond].bondMaturationBlock) || 0;
+    //@ts-ignore
+    return state.account[bond] && state.account[bond].bondMaturationBlock;
   });
 
   const vestingTerm = useSelector<IReduxState, number>(state => {
-    return (state.bonding[bond] && state.bonding[bond].vestingBlock) || 0;
+    return state.bonding[bond] && state.bonding[bond].vestingTerm;
   });
 
   const interestDue = useSelector<IReduxState, number>(state => {
-    return (state.bonding[bond] && state.bonding[bond].interestDue) || 0;
+    //@ts-ignore
+    return state.account[bond] && state.account[bond].interestDue;
   });
 
   const pendingPayout = useSelector<IReduxState, number>(state => {
-    return (state.bonding[bond] && state.bonding[bond].pendingPayout) || 0;
+    //@ts-ignore
+    return state.account[bond] && state.account[bond].pendingPayout;
   });
 
   const pendingTransactions = useSelector<IReduxState, IPendingTxn[]>(state => {
@@ -45,22 +48,19 @@ function BondRedeem({ bond }: IBondRedeem) {
   }
 
   const vestingTime = () => {
-    return prettyVestingPeriod(currentBlock, bondMaturationBlock);
+    return prettyVestingPeriod(currentBlockTime, bondMaturationBlock);
   };
 
   const vestingPeriod = () => {
-    //@ts-ignore
-    const vestingBlock = parseInt(currentBlock) + parseInt(vestingTerm);
-    const seconds = secondsUntilBlock(currentBlock, vestingBlock);
-    return prettifySeconds(seconds, "day");
+    return prettifySeconds(vestingTerm, "day");
   };
 
   const bondDiscount = useSelector<IReduxState, number>(state => {
-    return (state.bonding[bond] && state.bonding[bond].bondDiscount) || 0;
+    return state.bonding[bond] && state.bonding[bond].bondDiscount;
   });
 
   const debtRatio = useSelector<IReduxState, number>(state => {
-    return (state.bonding[bond] && state.bonding[bond].debtRatio) || 0;
+    return state.bonding[bond] && state.bonding[bond].debtRatio;
   });
 
   return (
@@ -91,13 +91,13 @@ function BondRedeem({ bond }: IBondRedeem) {
           <div className="data-row">
             <p className="bond-balance-title">Pending Rewards</p>
             <p className="price-data bond-balance-title">
-              {isBondLoading ? <Skeleton width="100px" /> : `${trim(interestDue, 4)} MIM`}
+              {isBondLoading ? <Skeleton width="100px" /> : `${trim(interestDue, 4)} TIME`}
             </p>
           </div>
           <div className="data-row">
             <p className="bond-balance-title">Claimable Rewards</p>
             <p className="price-data bond-balance-title">
-              {isBondLoading ? <Skeleton width="100px" /> : `${trim(pendingPayout, 4)} MIM`}
+              {isBondLoading ? <Skeleton width="100px" /> : `${trim(pendingPayout, 4)} TIME`}
             </p>
           </div>
           <div className="data-row">
