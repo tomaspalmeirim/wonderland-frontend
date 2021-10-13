@@ -74,7 +74,7 @@ function TimeMenu() {
                     >
                       <Button size="large" variant="contained" color="secondary" fullWidth>
                         <Typography className="buy-text" align="left">
-                          Buy on Trader Joe <SvgIcon component={ArrowUpIcon} htmlColor="#A3A3A3" />
+                          <p>Buy on Trader Joe <SvgIcon component={ArrowUpIcon} htmlColor="#A3A3A3" /></p>
                         </Typography>
                       </Button>
                     </Link>
@@ -90,7 +90,7 @@ function TimeMenu() {
                         color="secondary"
                         onClick={addTokenToWallet("TIME", TIME_ADDRESS)}
                       >
-                        <Typography className="buy-text">TIME</Typography>
+                        <Typography className="buy-text"><p>TIME</p></Typography>
                       </Button>
                       <Button
                         variant="contained"
@@ -98,7 +98,7 @@ function TimeMenu() {
                         color="secondary"
                         onClick={addTokenToWallet("MEMO", MEMO_ADDRESS)}
                       >
-                        <Typography className="buy-text">MEMO</Typography>
+                        <Typography className="buy-text"><p>MEMO</p></Typography>
                       </Button>
                     </Box>
                   ) : null}
